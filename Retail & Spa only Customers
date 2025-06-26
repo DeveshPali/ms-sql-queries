@@ -1,0 +1,25 @@
+with cte as(Select  [Identified Customers],Category,
+'1' as type
+from eppl.dbo.eppl_merge
+where date between '2025-03-01' and '2025-05-31' 
+and [Parent Channel] in ('Retail')
+and [Customer Type] = 'Customer Sales' and [Identified Customers]  != 'Na' and [Customer's Name] not like '%Default%'
+group by [Identified Customers],Category)
+
+
+,ABC as ( Select CTE.[Identified Customers],
+MAX(case when cte.Category = 'Spa Services' then Coalesce(CTE.type,0) end )  as spa,
+MAX(case when cte.Category!= 'Spa Services' then Coalesce(CTE.type,0) end )  as retail
+from CTE
+group by CTE.[Identified Customers]),
+
+DEF as
+(Select *,
+ case when ABC.spa= 1 and  Coalesce(abc.retail,'') = '' then 'SpaOnly'
+  when Coalesce(ABC.spa,'') = '' and  abc.retail = 1 then 'retailOnly'
+ when ABC.spa = 1 and  abc.retail = 1 then 'omni'
+ end as Tags
+from ABC
+)
+
+select * from DEF
