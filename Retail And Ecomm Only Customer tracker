@@ -1,0 +1,39 @@
+With CTE AS
+(Select  [Identified Customers],[Parent Channel],
+'1' as type
+from eppl.dbo.eppl_merge
+where date <= '2024-12-31' and [Parent Channel] in ('E-Commerce','Retail')
+and [Customer Type] = 'Customer Sales' and [Identified Customers]  != 'Na' and [Customer's Name] not like '%Default%'
+group by [Identified Customers],[Parent Channel] )
+,ABC as ( Select CTE.[Identified Customers],
+MAX(case when cte.[Parent Channel] = 'E-Commerce' then Coalesce(CTE.type,0) end )  as E_comm,
+MAX(case when cte.[Parent Channel] = 'Retail' then Coalesce(CTE.type,0) end )  as retail
+from CTE
+group by CTE.[Identified Customers]
+),
+DEF as
+(Select *,
+ case when ABC.E_comm = 1 and  Coalesce(abc.retail,'') = '' then 'EcomOnly'
+  when Coalesce(ABC.E_comm,'') = '' and  abc.retail = 1 then 'retailOnly'
+ when ABC.E_comm = 1 and  abc.retail = 1 then 'omni'
+ end as Tags
+from ABC
+),
+Ecommonly as (
+Select A.[Identified Customers] , Min(A.date) as transactiondate,'Ecommtoretail' as Type
+from eppl.dbo.eppl_merge A
+inner join DEF on DEF.[Identified Customers] = A.[Identified Customers] and DEF.Tags = 'EcomOnly'
+where A.date >= '2025-01-01' and A.[Parent Channel] in ('Retail')
+and A.[Customer Type] = 'Customer Sales' and A.[Identified Customers]  != 'Na' and A.[Customer's Name] not like '%Default%'
+group by A.[Identified Customers]),
+retailonly as (
+Select A.[Identified Customers] , Min(A.date) as transactiondate,'retailtoEcomm' as Type 
+from eppl.dbo.eppl_merge A
+inner join DEF on DEF.[Identified Customers] = A.[Identified Customers] and DEF.Tags = 'retailOnly'
+where A.date >= '2025-01-01' and A.[Parent Channel] in ('E-Commerce')
+and A.[Customer Type] = 'Customer Sales' and A.[Identified Customers]  != 'Na' and A.[Customer's Name] not like '%Default%'
+group by  A.[Identified Customers]
+)
+Select * from  retailonly
+union All
+Select * from  Ecommonly
