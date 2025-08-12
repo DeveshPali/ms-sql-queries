@@ -1,0 +1,11 @@
+ (
+    -- If today is the 1st of the month → show last month's data
+    (EXTRACT(DAY FROM current_date) = 1 AND
+     sid.transaction_date >= date_trunc('month', current_date - interval '1 month') AND
+     sid.transaction_date < date_trunc('month', current_date))
+    -- If today is 2nd or later → show current MTD
+    OR
+    (EXTRACT(DAY FROM current_date) > 1 AND
+     sid.transaction_date >= date_trunc('month', current_date) AND
+     sid.transaction_date < current_date + interval '1 day')
+) 
