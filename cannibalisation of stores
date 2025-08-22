@@ -1,0 +1,19 @@
+WITH CTE AS (SELECT distinct [Identified Customers]            --3598
+FROM eppl.dbo.eppl_merge
+WHERE [Customer Type] = 'Customer Sales'
+  AND [Parent Channel] = 'Retail'
+  AND [Identified Customers] <> 'Na'
+  AND [Customer's Name] NOT LIKE 'Default'
+  AND Channel = 'Koramangla' and [Invoice Status] = 'Complete'
+  AND [Date] >= DATEADD(DAY, -180, '2024-09-21')
+  )
+  SELECT distinct A.[Identified Customers] 
+FROM eppl.dbo.eppl_merge A
+ Left join CTE on CTE.[Identified Customers] = A.[Identified Customers]
+WHERE A.[Customer Type] = 'Customer Sales'
+  AND A.[Parent Channel] = 'Retail'
+  AND A.[Identified Customers] <> 'Na'
+  AND A.[Customer's Name] NOT LIKE 'Default'
+  AND A.Channel = 'Koramangla' and A.[Invoice Status] = 'Complete'
+  --AND A.[Date] >= '2023-07-16'
+  and CTE.[Identified Customers] is not null
