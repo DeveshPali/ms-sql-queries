@@ -18,4 +18,4 @@ and A.[Identified Customers] != 'NA'
 and A.Category != 'Spa Services'
 and A.[Customer's Name] not like '%Default%'
 and CTE.[Identified Customers] is null
-group by [Identified Customers],[Customer's Name]
+group by A.[Identified Customers],A.[Customer's Name]
