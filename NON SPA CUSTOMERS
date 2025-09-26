@@ -1,0 +1,21 @@
+WITH CTE AS (Select  [Identified Customers],[Customer's Name],Sum(sales) as sales from eppl.dbo.eppl_merge
+Where [Parent Channel] = 'Retail'
+and Date >= '2024-05-01'
+and [Customer Type] = 'Customer Sales'
+and [Bill From State] not in  ('Gujarat','Maharashtra','Rajasthan')
+and [Identified Customers] != 'NA'
+and Category = 'Spa Services'
+and [Customer's Name] not like '%Default%'
+group by [Identified Customers],[Customer's Name]
+)
+Select  A.[Identified Customers],A.[Customer's Name],Sum(A.sales) as sales from eppl.dbo.eppl_merge A
+left join CTE on CTE.[Identified Customers] = A.[Identified Customers]
+Where A.[Parent Channel] = 'Retail'
+and A.Date >= '2024-05-01'
+and A.[Customer Type] = 'Customer Sales'
+and A.[Bill From State] not in  ('Gujarat','Maharashtra','Rajasthan')
+and A.[Identified Customers] != 'NA'
+and A.Category != 'Spa Services'
+and A.[Customer's Name] not like '%Default%'
+and CTE.[Identified Customers] is null
+group by [Identified Customers],[Customer's Name]
