@@ -1,0 +1,12 @@
+Select * from 
+(Select [Identified Customers],[Customer's Name],[Main SKU],SUM([New Qty]) as Qty_Sold,CAst(Max(date) as date) as Last_purchased_date,
+ROW_NUMBER() over (partition by [Main SKU] order by SUM([New Qty]) Desc) as rn
+from eppl.dbo.eppl_merge
+Where Date >= '2025-04-01' and [Customer Type] = 'Customer Sales' and [Parent Channel] in ('E-Commerce','Retail') and [Identified Customers] != 'NA' and [Customer's Name] not like '%Default%'
+and
+[Sub-Category] in ('Bed Furniture','Cat Tree') and [Brand (P)] = 'HUFT'
+group by [Identified Customers],[Customer's Name],[Main SKU]
+having SUM(Sales) > 0
+)
+K
+where K.rn <= 50;
