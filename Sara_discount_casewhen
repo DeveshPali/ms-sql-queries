@@ -1,0 +1,38 @@
+Select EOMONTH(date) as "DD",[Identified Customers],[Invoice Number],sum([New Qty]) as QTY_Sold,sum(Sales)  as Sales, sum([MRP Sales]) as mrp_sale,
+ (sum([MRP Sales]) - sum([Sales])) / NULLIF(sum([MRP Sales]), 0) as disc,
+case 
+    when (sum([MRP Sales]) - sum([Sales])) / NULLIF(sum([MRP Sales]), 0) = 0 
+        then '0%'
+
+    when (sum([MRP Sales]) - sum([Sales])) / NULLIF(sum([MRP Sales]), 0) < 0.10 
+        then 'Upto 10%'
+
+    when (sum([MRP Sales]) - sum([Sales])) / NULLIF(sum([MRP Sales]), 0) >= 0.10 
+     and (sum([MRP Sales]) - sum([Sales])) / NULLIF(sum([MRP Sales]), 0) <= 0.15 
+        then '10%-15%'
+
+    when (sum([MRP Sales]) - sum([Sales])) / NULLIF(sum([MRP Sales]), 0) > 0.15 
+     and (sum([MRP Sales]) - sum([Sales])) / NULLIF(sum([MRP Sales]), 0) <= 0.20 
+        then '15%-20%'
+
+    when (sum([MRP Sales]) - sum([Sales])) / NULLIF(sum([MRP Sales]), 0) > 0.20 
+     and (sum([MRP Sales]) - sum([Sales])) / NULLIF(sum([MRP Sales]), 0) <= 0.25 
+        then '20%-25%'
+
+    when (sum([MRP Sales]) - sum([Sales])) / NULLIF(sum([MRP Sales]), 0) >= 0.25 
+     and (sum([MRP Sales]) - sum([Sales])) / NULLIF(sum([MRP Sales]), 0) <= 0.95 
+        then '25%-95%'
+
+    when (sum([MRP Sales]) - sum([Sales])) / NULLIF(sum([MRP Sales]), 0) > 0.95 
+        then '95%+'
+
+    else 'lessthan0%'
+end as discgroup
+
+from eppl.dbo.eppl_merge
+where date >= '2025-02-01' and date <= '2026-01-31'
+and [Customer Type] = 'Customer Sales'
+and Category = 'Food'
+and [Main Product Name] like '%Sara%'
+and [Parent Channel] = 'Retail'
+group by [Identified Customers],[Invoice Number],Date
