@@ -1,0 +1,31 @@
+With cte as
+(Select [Identified Customers] from 
+(Select [Identified Customers],[Invoice Number],sum(Sales)  as Sales, sum([MRP Sales]) as mrp_sale,
+ (sum([MRP Sales]) - sum([Sales])) / NULLIF(sum([MRP Sales]), 0) as disc,
+ case when (sum([MRP Sales]) - sum([Sales])) / NULLIF(sum([MRP Sales]), 0) = 0 then '0%' 
+      when (sum([MRP Sales]) - sum([Sales])) / NULLIF(sum([MRP Sales]), 0)  < 0.10 then 'Upto 10%'
+      when (sum([MRP Sales]) - sum([Sales])) / NULLIF(sum([MRP Sales]), 0) between '0.10' and '0.15' then '10%-15%'
+      when (sum([MRP Sales]) - sum([Sales])) / NULLIF(sum([MRP Sales]), 0) > 0.20 then '20%+'
+      else 'lessthan0%'
+      end as discgroup
+from eppl.dbo.eppl_merge
+where date >= '2025-01-01' and date <= '2026-01-31'
+and [Customer Type] = 'Customer Sales'
+and Category = 'Food'
+and [Main Product Name] like '%Sara%'
+and [Parent Channel] = 'Retail'
+group by [Identified Customers],[Invoice Number]
+having (sum([MRP Sales]) - sum([Sales])) / NULLIF(sum([MRP Sales]), 0) > 0.20
+)K
+Group by 
+[Identified Customers]
+)
+Select A.Date,A.[Identified Customers],A.[Bill From State],A.[Bill from City],
+A.[Invoice Status],A.[Invoice Number],A.Brand,A.[Brand (P)],A.Category,A.[Main SKU],A.[New Qty],A.Sales,A.[MRP Sales]
+from eppl.dbo.eppl_merge A
+Inner JOIN CTE on CTE.[Identified Customers] = A.[Identified Customers]
+where A.date >= '2025-01-01' and A.date <= '2026-01-31'
+and A.[Customer Type] = 'Customer Sales'
+and A.[Parent Channel] = 'Retail'
+group by A.[Identified Customers],A.[Bill From State],A.[Bill from City],
+A.[Invoice Status],A.[Invoice Number],A.Category,A.[Main SKU],A.[New Qty],A.Sales,A.[MRP Sales],A.Date,A.Brand,A.[Brand (P)]
